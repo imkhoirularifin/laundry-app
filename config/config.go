@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -24,6 +25,9 @@ type Config struct {
 	DbConfig
 }
 
+/*
+	Validate env configuration value based on configuration Struct
+*/
 func (c *Config) readConfig() error {
 	if err := godotenv.Load(); err != nil {
 		return err
@@ -43,10 +47,17 @@ func (c *Config) readConfig() error {
 	}
 
 	// TODO: Validate config
+	if c.ApiConfig.ApiPort == "" {
+		return errors.New("ApiPort cannot be empty")
+	}
+
 
 	return nil
 }
 
+/*
+	Call read config
+*/
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 	if err := cfg.readConfig(); err != nil {

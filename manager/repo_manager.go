@@ -14,6 +14,9 @@ func (r *repoManager) EmployeeRepo() repository.EmployeeRepository {
 	return repository.NewEmployeeRepository(r.infra.Conn())
 }
 
+/*
+	Overwrite repo manager struct with infra manager struct
+*/
 func NewRepoManager(infra InfraManager) RepoManager {
 	return &repoManager{infra: infra}
 }

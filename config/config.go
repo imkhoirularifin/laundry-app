@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -24,10 +25,16 @@ type LogConfig struct {
 	FilePath string
 }
 
+type JWTConfig struct {
+	SecretKey string
+	Lifetime  time.Duration
+}
+
 type Config struct {
 	ApiConfig
 	DbConfig
 	LogConfig
+	JWTConfig
 }
 
 /*
@@ -53,6 +60,16 @@ func (c *Config) readConfig() error {
 
 	c.LogConfig = LogConfig{
 		FilePath: os.Getenv("LOG_FILE_PATH"),
+	}
+
+	tokenLifeTime, err := time.ParseDuration(os.Getenv("JWT_LIFETIME"))
+	if err != nil {
+		return err
+	}
+
+	c.JWTConfig = JWTConfig{
+		SecretKey: os.Getenv("JWT_SECRET_KEY"),
+		Lifetime:  tokenLifeTime,
 	}
 
 	// TODO: Validate config

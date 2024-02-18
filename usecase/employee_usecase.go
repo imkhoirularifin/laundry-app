@@ -4,11 +4,13 @@ import (
 	"laundry-app/entity"
 	"laundry-app/entity/dto"
 	"laundry-app/repository"
+	"laundry-app/utils/common"
 )
 
 type EmployeeUsecase interface {
 	Find(payload dto.GetAllParams) ([]entity.Employee, error)
 	FindById(id string) (entity.Employee, error)
+	FindByUsernameAndPassword(payload dto.LoginParams) (entity.Employee, error)
 	Create(employee entity.Employee) (entity.Employee, error)
 }
 
@@ -41,7 +43,31 @@ func (e *employeeUsecase) FindById(id string) (entity.Employee, error) {
 }
 
 func (e *employeeUsecase) Create(employee entity.Employee) (entity.Employee, error) {
-	employee, err := e.employeeRepository.Create(employee)
+	password, err := common.GeneratePassword(employee.Password)
+	if err != nil {
+		return entity.Employee{}, err
+	}
+
+	employee.Password = password
+
+	employee, err = e.employeeRepository.Create(employee)
+	if err != nil {
+		return entity.Employee{}, err
+	}
+
+	employee.Password = ""
+
+	return employee, nil
+}
+
+func (e *employeeUsecase) FindByUsernameAndPassword(payload dto.LoginParams) (entity.Employee, error) {
+	employee, err := e.employeeRepository.FindByUsername(payload.Username)
+	if err != nil {
+		return entity.Employee{}, err
+	}
+
+	// check password
+	err = common.ComparePassword(employee.Password, payload.Password)
 	if err != nil {
 		return entity.Employee{}, err
 	}

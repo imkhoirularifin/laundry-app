@@ -6,6 +6,7 @@ import (
 	"laundry-app/delivery/controller"
 	"laundry-app/delivery/middleware"
 	"laundry-app/manager"
+	"laundry-app/usecase"
 	"laundry-app/utils/common"
 
 	"github.com/gin-gonic/gin"
@@ -13,10 +14,12 @@ import (
 )
 
 type Server struct {
-	ucManager  manager.UsecaseManager
-	engine     *gin.Engine
-	host       string
-	logService common.MyLogger
+	ucManager   manager.UsecaseManager
+	engine      *gin.Engine
+	host        string
+	logService  common.MyLogger
+	authService common.JwtService
+	authUsecase usecase.AuthUsecase
 }
 
 func (s *Server) setupController() {
@@ -27,6 +30,7 @@ func (s *Server) setupController() {
 
 	// register all controller below
 	controller.NewEmployeeController(s.ucManager.EmployeeUsecase(), rg).Route()
+	controller.NewAuthController(s.authUsecase, rg, s.authService).Route()
 }
 
 /*
@@ -68,12 +72,15 @@ func NewServer() *Server {
 
 	// Services
 	logService := common.NewMyLogger(cfg.LogConfig)
+	authService := common.NewJwtToken(cfg.JWTConfig)
 
 	// Overwrite Original Server
 	return &Server{
-		ucManager:  usecaseManager,
-		engine:     engine,
-		host:       host,
-		logService: logService,
+		ucManager:   usecaseManager,
+		engine:      engine,
+		host:        host,
+		logService:  logService,
+		authService: authService,
+		authUsecase: usecase.NewAuthUsecase(usecaseManager.EmployeeUsecase(), authService),
 	}
 }

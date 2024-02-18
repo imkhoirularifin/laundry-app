@@ -12,19 +12,23 @@ type InfraManager interface {
 }
 
 type infraManager struct {
-	db  *sql.DB
-	cfg *config.Config
+	db  *sql.DB // Connection
+	config *config.Config // Configuration
 }
 
+/*
+	Open Database Connection based on existing Configuration
+*/
 func (i *infraManager) openConn() error {
 	// dsn = data source name
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", i.cfg.Host, i.cfg.Port, i.cfg.Username, i.cfg.Password, i.cfg.Database)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", i.config.Host, i.config.Port, i.config.Username, i.config.Password, i.config.Database)
 
-	db, err := sql.Open(i.cfg.Driver, dsn)
+	db, err := sql.Open(i.config.Driver, dsn)
 	if err != nil {
 		return fmt.Errorf("failed to open connection %v", err.Error())
 	}
 
+	// Fill db on infraManager struct
 	i.db = db
 	return nil
 }
@@ -34,7 +38,8 @@ func (i *infraManager) Conn() *sql.DB {
 }
 
 func NewInfraManager(cfg *config.Config) (InfraManager, error) {
-	conn := &infraManager{cfg: cfg}
+	// Fill config on infraManager struct
+	conn := &infraManager{config: cfg}
 	if err := conn.openConn(); err != nil {
 		return nil, err
 	}

@@ -4,19 +4,25 @@ import (
 	"fmt"
 	"laundry-app/config"
 	"laundry-app/delivery/controller"
+	"laundry-app/delivery/middleware"
 	"laundry-app/manager"
+	"laundry-app/utils/common"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
 type Server struct {
-	ucManager manager.UsecaseManager
-	engine    *gin.Engine
-	host      string
+	ucManager  manager.UsecaseManager
+	engine     *gin.Engine
+	host       string
+	logService common.MyLogger
 }
 
 func (s *Server) setupController() {
+	// middleware
+	s.engine.Use(middleware.NewLogMiddleware(s.logService).LogRequest())
+
 	rg := s.engine.Group("/api")
 
 	// register all controller below
@@ -42,13 +48,13 @@ func Start(s *Server) {
 }
 
 func NewServer() *Server {
-	// Validate environment configuration
+	// Create environment configuration instance
 	cfg, err := config.NewConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	// Validate database config & open connection
+	// Create connection to database
 	infraManager, err := manager.NewInfraManager(cfg)
 	if err != nil {
 		panic(err)
@@ -60,10 +66,14 @@ func NewServer() *Server {
 	engine := gin.Default()
 	host := fmt.Sprintf(":%s", cfg.ApiPort)
 
+	// Services
+	logService := common.NewMyLogger(cfg.LogConfig)
+
 	// Overwrite Original Server
 	return &Server{
-		ucManager: usecaseManager,
-		engine:    engine,
-		host:      host,
+		ucManager:  usecaseManager,
+		engine:     engine,
+		host:       host,
+		logService: logService,
 	}
 }

@@ -20,13 +20,18 @@ type DbConfig struct {
 	Driver   string
 }
 
+type LogConfig struct {
+	FilePath string
+}
+
 type Config struct {
 	ApiConfig
 	DbConfig
+	LogConfig
 }
 
 /*
-	Validate env configuration value based on configuration Struct
+Validate env configuration value based on configuration Struct
 */
 func (c *Config) readConfig() error {
 	if err := godotenv.Load(); err != nil {
@@ -46,17 +51,20 @@ func (c *Config) readConfig() error {
 		Driver:   os.Getenv("DB_DRIVER"),
 	}
 
+	c.LogConfig = LogConfig{
+		FilePath: os.Getenv("LOG_FILE_PATH"),
+	}
+
 	// TODO: Validate config
 	if c.ApiConfig.ApiPort == "" {
 		return errors.New("ApiPort cannot be empty")
 	}
 
-
 	return nil
 }
 
 /*
-	Call read config
+Call read config
 */
 func NewConfig() (*Config, error) {
 	cfg := &Config{}

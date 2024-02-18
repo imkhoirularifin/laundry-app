@@ -4,7 +4,7 @@ import (
 	"laundry-app/entity"
 	"laundry-app/entity/dto"
 	"laundry-app/usecase"
-	common "laundry-app/utils"
+	common "laundry-app/utils/common"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
